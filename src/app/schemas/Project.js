@@ -1,4 +1,5 @@
 import mongoose from '@/database';
+import Slugify from '@/utils/Slugify';
 
 const ProjectSchema = new mongoose.Schema({
   title: {
@@ -9,7 +10,6 @@ const ProjectSchema = new mongoose.Schema({
 
   slug: {
     type: String,
-    required: true,
     unique: true,
   },
 
@@ -23,17 +23,16 @@ const ProjectSchema = new mongoose.Schema({
     required: true,
   },
 
-  images: [
-    {
-      type: String,
-      required: true,
-    },
-  ],
-
   createdAt: {
     type: Date,
     default: Date.now,
   },
+});
+
+ProjectSchema.pre('save', function (next) {
+  const title = this.title;
+  this.slug = Slugify(title);
+  next();
 });
 
 export default mongoose.model('Project', ProjectSchema);
