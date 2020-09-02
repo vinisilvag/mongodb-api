@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import Project from '@/app/schemas/Project';
 import Slugify from '@/utils/Slugify';
+import AuthMiddleware from '@/app/middlewares/Auth';
 
 const router = new Router();
 
@@ -13,7 +14,7 @@ router.get('/', (req, res) => {
       console.error('Error when trying to fetch projects', err);
 
       res.status(400).send({
-        error: 'Não foi possível buscar os projetos',
+        error: 'Could not fetch all projects',
       });
     });
 });
@@ -29,7 +30,7 @@ router.get('/id/:projectId', (req, res) => {
       console.error('Error when trying to fetch the specific project', err);
 
       res.status(400).send({
-        error: 'Erro ao buscar o projeto específico',
+        error: 'Error fetching this project',
       });
     });
 });
@@ -45,15 +46,15 @@ router.get('/:projectSlug', (req, res) => {
       console.error('Error when trying to fetch the specific project', err);
 
       res.status(400).send({
-        error: 'Erro ao buscar o projeto específico',
+        error: 'Error fetching this project',
       });
     });
 });
 
-router.post('/', (req, res) => {
-  const { title, slug, description, category } = req.body;
+router.post('/', AuthMiddleware, (req, res) => {
+  const { title, description, category } = req.body;
 
-  Project.create({ title, slug, description, category })
+  Project.create({ title, description, category })
     .then((project) => {
       res.status(200).send(project);
     })
@@ -61,12 +62,12 @@ router.post('/', (req, res) => {
       console.error('Error saving the new project to the database', err);
 
       res.status(400).send({
-        error: 'Não foi possível salvar o projeto. Verifique os dados enviados',
+        error: 'The project could not be saved. Check the data sent',
       });
     });
 });
 
-router.put('/:projectId', (req, res) => {
+router.put('/:projectId', AuthMiddleware, (req, res) => {
   const { projectId } = req.params;
   const { title, description, category } = req.body;
   let slug = undefined;
@@ -87,26 +88,25 @@ router.put('/:projectId', (req, res) => {
       console.error('Error updating the project at the database', err);
 
       res.status(400).send({
-        error:
-          'Não foi possível atualizar o projeto. Verifique os dados enviados',
+        error: 'The project could not be updated. Check the data sent',
       });
     });
 });
 
-router.delete('/:projectId', (req, res) => {
+router.delete('/:projectId', AuthMiddleware, (req, res) => {
   const { projectId } = req.params;
 
   Project.findByIdAndRemove(projectId)
     .then(() => {
       res.status(200).send({
-        message: 'Projeto removido com sucesso',
+        message: 'Project removed successfully',
       });
     })
     .catch((err) => {
       console.error('Error deleting the project at the database', err);
 
       res.status(400).send({
-        error: 'Erro ao deletar o projeto específico',
+        error: 'Error deleting this project',
       });
     });
 });
